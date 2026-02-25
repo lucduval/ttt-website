@@ -6,5 +6,5 @@ export const metadata: Metadata = {
 };
 
 export default function EmbedTaxCalculator() {
-  return <TaxCalculatorPage noBg />;
+  return <TaxCalculatorPage noBg noHeader />;
 }

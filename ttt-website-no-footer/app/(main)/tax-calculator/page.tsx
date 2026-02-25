@@ -280,7 +280,7 @@ function SmartAdvice({
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function TaxCalculatorPage({ noBg }: { noBg?: boolean } = {}) {
+export default function TaxCalculatorPage({ noBg, noHeader }: { noBg?: boolean; noHeader?: boolean } = {}) {
   const [taxYear, setTaxYear] = useState("2026");
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [grossIncome, setGrossIncome] = useState(35000);
@@ -344,25 +344,27 @@ export default function TaxCalculatorPage({ noBg }: { noBg?: boolean } = {}) {
   return (
     <div className={noBg ? "bg-white" : "bg-[#F8FAFC]"}>
       {/* Page Hero */}
-      <div className="bg-gradient-to-r from-[#0077BB] to-[#0168A2] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="bg-white/20 p-2.5 rounded-xl">
-              <Calculator className="w-6 h-6 text-white" />
+      {!noHeader && (
+        <div className="bg-gradient-to-r from-[#0077BB] to-[#0168A2] text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-white/20 p-2.5 rounded-xl">
+                <Calculator className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-sm font-semibold uppercase tracking-widest text-blue-200">
+                South African Income Tax
+              </span>
             </div>
-            <span className="text-sm font-semibold uppercase tracking-widest text-blue-200">
-              South African Income Tax
-            </span>
+            <h1 className="text-3xl sm:text-4xl font-bold mb-3">
+              PAYE Tax Calculator
+            </h1>
+            <p className="text-blue-100 max-w-2xl text-base">
+              Estimate your South African income tax, UIF, and net take-home pay instantly.
+              Includes retirement annuity deductions and medical aid credits.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-            PAYE Tax Calculator
-          </h1>
-          <p className="text-blue-100 max-w-2xl text-base">
-            Estimate your South African income tax, UIF, and net take-home pay instantly.
-            Includes retirement annuity deductions and medical aid credits.
-          </p>
         </div>
-      </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
