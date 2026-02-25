@@ -4,8 +4,12 @@ import { useEffect } from "react";
 
 /**
  * Sends the page's scroll height to the parent window so the host iframe
- * can resize itself dynamically. Fires on mount, on window resize, and
- * whenever the DOM changes (via ResizeObserver on document.body).
+ * can resize itself dynamically.
+ *
+ * Uses MutationObserver (not ResizeObserver) deliberately — ResizeObserver
+ * on document.body would fire when the *parent* resizes the iframe container,
+ * creating an infinite grow loop. MutationObserver only fires when the actual
+ * DOM content changes.
  */
 export default function IframeResizer() {
     useEffect(() => {
@@ -23,16 +27,18 @@ export default function IframeResizer() {
         // Fire immediately on mount
         sendHeight();
 
-        // Fire on every window resize
+        // Fire on window resize (user resizing the browser window)
         window.addEventListener("resize", sendHeight);
 
-        // Fire whenever any element on the page changes size
-        const ro = new ResizeObserver(sendHeight);
-        ro.observe(document.body);
+        // Fire when DOM content changes (e.g. form steps, accordions, dynamic content).
+        // MutationObserver does NOT fire when the iframe container is resized by the
+        // parent — so there is no feedback loop.
+        const mo = new MutationObserver(sendHeight);
+        mo.observe(document.body, { childList: true, subtree: true, attributes: true });
 
         return () => {
             window.removeEventListener("resize", sendHeight);
-            ro.disconnect();
+            mo.disconnect();
         };
     }, []);
 

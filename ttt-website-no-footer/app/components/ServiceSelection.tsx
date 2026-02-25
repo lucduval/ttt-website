@@ -45,7 +45,7 @@ export default function ServiceSelection({ onSelect, hideHeader }: ServiceSelect
     ];
 
     return (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center justify-center p-4">
             {!hideHeader && (
                 <>
                     <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 text-center">
