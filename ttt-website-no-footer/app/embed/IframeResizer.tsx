@@ -8,27 +8,33 @@ import { useEffect } from "react";
  * whenever the DOM changes (via ResizeObserver on document.body).
  */
 export default function IframeResizer() {
-  useEffect(() => {
-    const sendHeight = () => {
-      const height = document.body.scrollHeight;
-      window.parent.postMessage({ type: "FORM_HEIGHT", height }, "*");
-    };
+    useEffect(() => {
+        const sendHeight = () => {
+            // Use the larger of body/documentElement to handle all browser quirks.
+            // +1px buffer prevents subpixel rounding from causing a brief scrollbar.
+            const height =
+                Math.max(
+                    document.body.scrollHeight,
+                    document.documentElement.scrollHeight
+                ) + 1;
+            window.parent.postMessage({ type: "FORM_HEIGHT", height }, "*");
+        };
 
-    // Fire immediately on mount
-    sendHeight();
+        // Fire immediately on mount
+        sendHeight();
 
-    // Fire on every window resize
-    window.addEventListener("resize", sendHeight);
+        // Fire on every window resize
+        window.addEventListener("resize", sendHeight);
 
-    // Fire whenever any element on the page changes size
-    const ro = new ResizeObserver(sendHeight);
-    ro.observe(document.body);
+        // Fire whenever any element on the page changes size
+        const ro = new ResizeObserver(sendHeight);
+        ro.observe(document.body);
 
-    return () => {
-      window.removeEventListener("resize", sendHeight);
-      ro.disconnect();
-    };
-  }, []);
+        return () => {
+            window.removeEventListener("resize", sendHeight);
+            ro.disconnect();
+        };
+    }, []);
 
-  return null;
+    return null;
 }

@@ -6,9 +6,13 @@ export default function EmbedLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="w-full">
-      {children}
-      <IframeResizer />
-    </div>
+    <>
+      {/* Suppress internal scrollbars — the parent iframe height is set via postMessage instead */}
+      <style>{`html, body { overflow: hidden !important; margin: 0; padding: 0; }`}</style>
+      <div className="w-full">
+        {children}
+        <IframeResizer />
+      </div>
+    </>
   );
 }
