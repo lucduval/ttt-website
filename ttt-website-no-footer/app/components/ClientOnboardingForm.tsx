@@ -143,9 +143,6 @@ export default function ClientOnboardingForm({ onBack }: ClientOnboardingFormPro
 
     const nextStep = async () => {
         if (currentStep === 1 && !isStep1Valid()) return;
-        if (currentStep === 1) {
-            createLeadInBackground();
-        }
         if (currentStep < totalSteps) {
             setCurrentStep(prev => prev + 1);
             window.scrollTo({ top: 0, behavior: 'smooth' });
