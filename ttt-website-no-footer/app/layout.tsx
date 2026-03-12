@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://ttt-tax.co.za"),
 };
 
+import ConvexClientProvider from "./ConvexClientProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,7 +36,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${roboto.variable} ${robotoSlab.variable} antialiased`}>
-        {children}
+        <ConvexClientProvider>
+          {children}
+        </ConvexClientProvider>
       </body>
     </html>
   );

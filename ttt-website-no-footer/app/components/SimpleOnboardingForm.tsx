@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { PopupModal } from 'react-calendly';
 import FormInput from './ui/FormInput';
-import { submitTargetData } from '../actions';
+import { getIndustries, submitTargetData } from '../actions';
 
 interface SimpleOnboardingFormProps {
     serviceType: string;
@@ -35,7 +35,14 @@ export default function SimpleOnboardingForm({ serviceType, onBack }: SimpleOnbo
         }
     }, []);
 
+    const [industries, setIndustries] = useState<{ id: string; name: string }[]>([]);
+
+    useEffect(() => {
+        getIndustries().then(setIndustries).catch(console.error);
+    }, []);
+
     const [formData, setFormData] = useState({
+        clientType: '',
         name: '',
         email: '',
         phone: '',
@@ -46,7 +53,7 @@ export default function SimpleOnboardingForm({ serviceType, onBack }: SimpleOnbo
         files: [] as { name: string, content: string, type: string }[]
     });
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -55,7 +62,16 @@ export default function SimpleOnboardingForm({ serviceType, onBack }: SimpleOnbo
         e.preventDefault();
         setLoading(true);
         try {
-            await submitTargetData(formData, serviceType);
+            await submitTargetData({
+                ...formData,
+                clientType: formData.clientType ? parseInt(formData.clientType) : undefined,
+                name: formData.name || undefined,
+                message: formData.message || undefined,
+                idNumber: formData.idNumber || undefined,
+                taxNumber: formData.taxNumber || undefined,
+                industry: formData.industry || undefined,
+                files: formData.files
+            }, serviceType);
             setSubmitted(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
@@ -79,7 +95,7 @@ export default function SimpleOnboardingForm({ serviceType, onBack }: SimpleOnbo
                     </p>
                     <div className="space-y-3">
                         <button
-                            onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', phone: '', idNumber: '', taxNumber: '', industry: '', message: '', files: [] }); }}
+                            onClick={() => { setSubmitted(false); setFormData({ clientType: '', name: '', email: '', phone: '', idNumber: '', taxNumber: '', industry: '', message: '', files: [] }); }}
                             className="w-full py-3 px-4 bg-[#0077BB] hover:bg-[#0066a1] text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-900/20"
                         >
                             Submit Another Request
@@ -117,6 +133,32 @@ export default function SimpleOnboardingForm({ serviceType, onBack }: SimpleOnbo
                         </div>
 
                         <div className="p-6 sm:p-8 space-y-6">
+                            <div>
+                                <label htmlFor="clientType" className="block text-sm font-medium text-slate-700 mb-2">
+                                    Client Type <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute top-3 left-3 pointer-events-none text-slate-400">
+                                        <User size={18} />
+                                    </div>
+                                    <select
+                                        id="clientType"
+                                        name="clientType"
+                                        value={formData.clientType}
+                                        onChange={handleInputChange}
+                                        className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0077BB] focus:border-[#0077BB] transition-colors bg-slate-50 focus:bg-white text-slate-900 sm:text-sm shadow-sm appearance-none"
+                                        required
+                                    >
+                                        <option value="" disabled>Select Client Type</option>
+                                        <option value="0">Individual</option>
+                                        <option value="1">Business</option>
+                                        <option value="2">Private Company</option>
+                                        <option value="3">Closed Corporation</option>
+                                        <option value="4">Business Trust</option>
+                                        <option value="5">Sole Proprietorship</option>
+                                    </select>
+                                </div>
+                            </div>
                             <FormInput
                                 label="Full Name"
                                 id="name"
@@ -167,15 +209,29 @@ export default function SimpleOnboardingForm({ serviceType, onBack }: SimpleOnbo
                                         required
                                         icon={FileText}
                                     />
-                                    <FormInput
-                                        label="Industry"
-                                        id="industry"
-                                        value={formData.industry}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g. Retail, Construction, IT"
-                                        required
-                                        icon={Briefcase}
-                                    />
+                                    <div>
+                                        <label htmlFor="industry" className="block text-sm font-medium text-slate-700 mb-2">
+                                            Industry
+                                        </label>
+                                        <div className="relative">
+                                            <div className="absolute top-3 left-3 pointer-events-none text-slate-400">
+                                                <Briefcase size={18} />
+                                            </div>
+                                            <select
+                                                id="industry"
+                                                name="industry"
+                                                value={formData.industry}
+                                                onChange={handleInputChange}
+                                                className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0077BB] focus:border-[#0077BB] transition-colors bg-slate-50 focus:bg-white text-slate-900 sm:text-sm shadow-sm appearance-none"
+                                                required
+                                            >
+                                                <option value="" disabled>Select your industry</option>
+                                                {industries.map((ind: { id: string; name: string }) => (
+                                                    <option key={ind.id} value={ind.id}>{ind.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
                                 </>
                             )}
 

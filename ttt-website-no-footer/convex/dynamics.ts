@@ -1,6 +1,7 @@
-"use server";
+"use node";
 
 export async function getAccessToken() {
+    // Access environment variables securely in Convex
     const tenantId = process.env.DYNAMICS_TENANT_ID;
     const clientId = process.env.DYNAMICS_CLIENT_ID;
     const clientSecret = process.env.DYNAMICS_CLIENT_SECRET;
@@ -41,7 +42,7 @@ export async function getAccessToken() {
     }
 }
 
-export async function createRecord(entityCollection: string, data: Record<string, unknown>) {
+export async function createRecord(entityCollection: string, data: Record<string, unknown>): Promise<{ success: boolean; id?: string }> {
     const resource = process.env.DYNAMICS_RESOURCE_URL;
     if (!resource) {
         throw new Error("Missing Dynamics resource URL.");
@@ -59,7 +60,8 @@ export async function createRecord(entityCollection: string, data: Record<string
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
-                'Prefer': 'return=representation'
+                // Return no content to get the OData-EntityId header containing the new ID
+                'Prefer': 'return=minimal'
             },
             body: JSON.stringify(data)
         });
@@ -70,43 +72,17 @@ export async function createRecord(entityCollection: string, data: Record<string
             throw new Error(`Failed to create record: ${response.statusText} - ${errorText}`);
         }
 
-        // With Prefer: return=representation, Dynamics returns the full entity as JSON.
-        // The primary key field follows the pattern: {entityCollection without trailing 's'}id
-        // e.g. new_leads -> new_leadid, annotations -> annotationid
-        const body = await response.json().catch(() => null);
-        console.log("Dynamics response keys:", body ? Object.keys(body).join(", ") : "no body");
-
-        let entityId: string | null = null;
-        if (body) {
-            // Derive the primary key field name: strip trailing 's' and append 'id'
-            const singularName = entityCollection.endsWith('s')
-                ? entityCollection.slice(0, -1)
-                : entityCollection;
-            const primaryKeyField = `${singularName}id`;
-            entityId = body[primaryKeyField] || null;
-
-            // Fallback: search for any field ending in 'id' that looks like a GUID
-            if (!entityId) {
-                for (const key of Object.keys(body)) {
-                    if (key.endsWith('id') && typeof body[key] === 'string' && /^[0-9a-f-]{36}$/i.test(body[key])) {
-                        entityId = body[key];
-                        console.log(`Found entity ID from field '${key}':`, entityId);
-                        break;
-                    }
-                }
+        const entityIdHeader = response.headers.get("OData-EntityId");
+        let newRecordId = undefined;
+        if (entityIdHeader) {
+            // "OData-EntityId" format is usually https://org.crm.dynamics.com/api/data/v9.2/entity(id)
+            const match = entityIdHeader.match(/\(([^)]+)\)/);
+            if (match && match[1]) {
+                newRecordId = match[1];
             }
         }
 
-        // Fallback: try OData-EntityId header
-        if (!entityId) {
-            const entityIdHeader = response.headers.get("OData-EntityId");
-            if (entityIdHeader) {
-                const match = entityIdHeader.match(/\(([0-9a-f-]+)\)$/i);
-                if (match) entityId = match[1];
-            }
-        }
-
-        return { ...body, id: entityId };
+        return { success: true, id: newRecordId };
 
     } catch (error) {
         console.error("Error in createRecord:", error);
@@ -122,10 +98,7 @@ export async function getRecords(entityCollection: string, query: string = ""): 
 
     // Strip trailing slash if present
     const baseUrl = resource.endsWith('/') ? resource.slice(0, -1) : resource;
-
-    // Properly encode the query to avoid 502 Bad Gateway from proxies
-    const encodedQuery = encodeURI(query);
-    const apiUrl = `${baseUrl}/api/data/v9.2/${entityCollection}${encodedQuery}`;
+    const apiUrl = `${baseUrl}/api/data/v9.2/${entityCollection}${query}`;
 
     try {
         const token = await getAccessToken();
