@@ -199,8 +199,8 @@ export function buildClientThankYouHtml(
                         </td>
                     </tr>
                     ${footerImageUrl ? `<tr>
-                        <td style="padding: 0;">
-                            <img src="${footerImageUrl}" alt="TTT Accounting" width="600" style="display: block; width: 100%; height: auto;" />
+                        <td style="padding: 24px 32px 0;">
+                            <img src="${footerImageUrl}" alt="TTT Accounting" width="536" style="display: block; width: 100%; height: auto;" />
                         </td>
                     </tr>` : ""}
                     <tr>
