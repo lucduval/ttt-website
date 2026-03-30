@@ -211,6 +211,7 @@ export default function ClientOnboardingForm({ onBack }: ClientOnboardingFormPro
                         </button>
                         <a
                             href="https://ttt-tax.co.za"
+                            target="_top"
                             className="block w-full py-3 px-4 text-slate-600 hover:text-slate-900 font-medium transition-colors border border-slate-200 rounded-lg hover:bg-slate-50"
                         >
                             Go to Homepage
